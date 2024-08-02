@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { FolderTree } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,12 +12,31 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  sidebar,
 }: Readonly<{
   children: React.ReactNode;
+  sidebar: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <div className="flex h-screen bg-gray-100">
+          {/* Sidebar */}
+          <aside className="w-64 bg-white shadow-md">
+            <div className="p-4">
+              <h1 className="text-xl font-bold flex items-center">
+                <FolderTree className="mr-2" />
+                Repo Tree Viewer
+              </h1>
+            </div>
+            {sidebar}
+          </aside>
+          {/* Main content */}
+          <main className="flex-1 overflow-x-hidden overflow-y-auto">
+            {children}
+          </main>
+        </div>
+      </body>
     </html>
   );
 }
