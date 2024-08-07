@@ -2,25 +2,27 @@
 
 import { signIn, signOut } from "next-auth/react";
 import { LogIn, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function LoginButton() {
   return (
-    <button
-      onClick={() => signIn("github")}
-      className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-800"
-    >
-      Sign in with GitHub
+    <button onClick={() => signIn("github")} className="btn-auth space-x-2">
+      <span className="hidden-mobile">Sign in with GitHub</span>
       <LogIn size={18} />
     </button>
   );
 }
 
 export function LogoutButton() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/");
+  };
+
   return (
-    <button
-      onClick={() => signOut()}
-      className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-800 ml-4"
-    >
+    <button onClick={handleLogout} className="btn-auth ml-4">
       <LogOut size={18} />
     </button>
   );

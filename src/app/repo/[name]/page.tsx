@@ -1,37 +1,63 @@
-import { RepoTree } from "@/component/repo-tree";
+import { TreeView } from "@/component/tree-view";
+import { TreeViewElement } from "@/component/tree-view-api";
 import { getRepoTree } from "@/lib/github";
+import { convertToTreeViewElement } from "@/lib/tree-converter";
+import { GitTreeResponse } from "@/type";
+import { TreeSkeletonLoader } from "@/component/tree-loader";
+import { Suspense } from "react";
 
-export default async function RepoPage({
+async function RepoTreeContent({
+  name,
+  branch,
+}: {
+  name: string;
+  branch: string;
+}) {
+  let treeData: TreeViewElement[] = [];
+  let error: string | null = null;
+
+  try {
+    const data: GitTreeResponse = await getRepoTree(name, branch);
+    if (!data || !data.tree || !Array.isArray(data.tree)) {
+      throw new Error("Invalid repository tree data");
+    }
+    treeData = convertToTreeViewElement(data.tree);
+  } catch (err) {
+    console.error("Error fetching repo tree:", err);
+    error =
+      "Error loading repository data. Please check the repository name and branch.";
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  return (
+    <>
+      {treeData.length > 0 ? (
+        <TreeView elements={treeData} />
+      ) : (
+        <div>No data available</div>
+      )}
+    </>
+  );
+}
+
+export default function RepoPage({
   params,
   searchParams,
 }: {
   params: { name: string };
-  searchParams: { name: string; branch: string };
+  searchParams: { branch: string };
 }) {
   const { name } = params;
   const { branch } = searchParams;
 
-  try {
-    const data = await getRepoTree(name, branch);
-
-    if (!data || !data.tree || !Array.isArray(data.tree)) {
-      throw new Error("Invalid repository tree data");
-    }
-
-    return (
-      <div>
-        <h1 className="text-2xl font-bold mb-4">Repository: {name}</h1>
-        <p className="mb-4">Branch: {branch}</p>
-        <RepoTree tree={data.tree} />
-      </div>
-    );
-  } catch (error) {
-    console.error("Error fetching repo tree:", error);
-    return (
-      <div>
-        Error loading repository data. Please check the repository name and
-        branch.
-      </div>
-    );
-  }
+  return (
+    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <Suspense fallback={<TreeSkeletonLoader />}>
+        <RepoTreeContent name={name} branch={branch} />
+      </Suspense>
+    </div>
+  );
 }

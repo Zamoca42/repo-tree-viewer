@@ -1,3 +1,5 @@
-export default function DefaultSidebar() {
-  return null;
+import Sidebar from "@/component/sidebar";
+
+export default async function DefaultSidebar() {
+  return <Sidebar />;
 }
