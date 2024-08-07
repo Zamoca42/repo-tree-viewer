@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { fetchRepositories } from "@/lib/github";
 import { GitBranch } from "lucide-react";
+import { processRepositories } from "@/lib/handler";
 import Link from "next/link";
 
 export default async function Sidebar() {
@@ -9,6 +10,7 @@ export default async function Sidebar() {
   if (!session) return null;
 
   const repos = await fetchRepositories();
+  const reposWithTreeData = await processRepositories(repos);
 
   return (
     <nav>
@@ -19,23 +21,32 @@ export default async function Sidebar() {
       </div>
       <div className="h-[90vh] overflow-y-auto">
         <ul className="space-y-2">
-          {repos.map((repo) => (
+          {reposWithTreeData.map((repo) => (
             <li
               key={repo.id}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
             >
-              <Link
-                href={`/repo/${repo.name}?branch=${repo.default_branch}`}
-                className="flex items-center"
-              >
-                <GitBranch className="mr-2 flex-shrink-0" size={18} />
-                <span className="truncate flex-1">{repo.name}</span>
-                {repo.private && (
-                  <span className="ml-2 text-xs text-muted-foreground flex-shrink-0 hidden-mobile">
-                    (Private)
+              {repo.compressedContext ? (
+                <Link
+                  href={`/repo?tree=${repo.compressedContext}`}
+                  className="flex items-center text-responsive"
+                >
+                  <GitBranch className="mr-2 flex-shrink-0" size={18} />
+                  <span className="truncate flex-1">{repo.name}</span>
+                  {repo.private && (
+                    <span className="ml-2 text-xs text-muted-foreground flex-shrink-0 hidden-mobile">
+                      (Private)
+                    </span>
+                  )}
+                </Link>
+              ) : (
+                <span className="flex items-center text-responsive text-gray-400">
+                  <GitBranch className="mr-2 flex-shrink-0" size={18} />
+                  <span className="truncate flex-1">
+                    {repo.name} (Error loading)
                   </span>
-                )}
-              </Link>
+                </span>
+              )}
             </li>
           ))}
         </ul>

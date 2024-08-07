@@ -12,6 +12,12 @@
   }
 }
 
+@layer utilities {
+  .text-responsive {
+    @apply text-sm md:text-base;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

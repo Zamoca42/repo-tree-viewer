@@ -1,20 +1,29 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { LoginButton, LogoutButton } from "@/component/auth-button";
 import Image from "next/image";
 import { Session } from "next-auth";
+import { useSearchParams } from "next/navigation";
+import { deserialize } from "@/lib/serializer";
 
 export function RepoHeader({ session }: { session: Session | null }) {
-  const pathname = usePathname();
-  const repoName = pathname.split("/")[2]; // Assuming the path is /repo/[name]
+  const searchParams = useSearchParams();
+  const context = searchParams.get("tree");
+
+  let repoName = "Repository Tree";
+  if (context) {
+    try {
+      const decodedData = deserialize(context);
+      repoName = decodedData.repoName;
+    } catch (error) {
+      console.error("Error decoding context in header:", error);
+    }
+  }
 
   return (
     <header className="shadow-sm">
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        <h2 className="text-lg font-semibold">
-          {repoName ? `Repository: ${repoName}` : "Repository Tree"}
-        </h2>
+        <h2 className="text-lg font-semibold">Repository: {repoName}</h2>
         {session ? (
           <div className="flex items-center space-x-2">
             <Image

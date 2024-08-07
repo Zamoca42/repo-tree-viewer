@@ -244,7 +244,7 @@ const Folder = forwardRef<
       >
         <AccordionPrimitive.Trigger
           className={cn(
-            `flex items-center gap-1 text-sm rounded-md`,
+            `flex items-center gap-1 text-responsive rounded-md`,
             className,
             {
               "bg-muted rounded-md": isSelect && isSelectable,
@@ -316,7 +316,7 @@ const File = forwardRef<
           disabled={!isSelectable}
           aria-label="File"
           className={cn(
-            "flex items-center gap-1 cursor-pointer text-sm pr-1 rtl:pl-1 rtl:pr-0 rounded-md  duration-200 ease-in-out",
+            "flex items-center gap-1 cursor-pointer text-responsive pr-1 rtl:pl-1 rtl:pr-0 rounded-md  duration-200 ease-in-out",
             {
               "bg-muted": isSelected && isSelectable,
             },
