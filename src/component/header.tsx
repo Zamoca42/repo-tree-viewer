@@ -4,7 +4,7 @@ import { LoginButton, LogoutButton } from "@/component/auth-button";
 import Image from "next/image";
 import { Session } from "next-auth";
 import { useSearchParams } from "next/navigation";
-import { deserialize } from "@/lib/serializer";
+import { decodeTreeViewElement } from "@/lib/converter";
 
 export function RepoHeader({ session }: { session: Session | null }) {
   const searchParams = useSearchParams();
@@ -13,7 +13,7 @@ export function RepoHeader({ session }: { session: Session | null }) {
   let repoName = "Repository Tree";
   if (context) {
     try {
-      const decodedData = deserialize(context);
+      const decodedData = decodeTreeViewElement(context);
       repoName = decodedData.repoName;
     } catch (error) {
       console.error("Error decoding context in header:", error);

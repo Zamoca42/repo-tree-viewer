@@ -4,6 +4,7 @@ export interface Repository {
   private: boolean;
   html_url: string;
   default_branch: string;
+  fork: boolean;
 }
 
 export interface GitTreeItem {
