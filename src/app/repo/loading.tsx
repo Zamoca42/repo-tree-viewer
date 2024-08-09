@@ -1,4 +1,4 @@
-import { TreeSkeletonLoader } from "@/component/tree-loader";
+import { TreeSkeletonLoader } from "@/component/loader";
 
 export default function Loading() {
   return (

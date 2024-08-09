@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { cn } from "@/lib/util";
 import { RepoHeader } from "@/component/header";
 import Link from "next/link";
+import { TreeViewProvider } from "@/context/view-filter";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -30,23 +31,25 @@ export default async function RootLayout({
           inter.variable
         )}
       >
-        <div className="flex h-screen">
-          <aside className="w-64 shadow-md">
-            <div className="p-4">
-              <Link href={"/"}>
-                <h1 className="text-xl font-bold flex items-center">
-                  <TreeIcon className="mr-2" />
-                  Repo Tree Viewer
-                </h1>
-              </Link>
-            </div>
-            <div>{sidebar}</div>
-          </aside>
-          <main className="flex-1 overflow-x-hidden overflow-y-auto">
-            <RepoHeader session={session} />
-            {children}
-          </main>
-        </div>
+        <TreeViewProvider>
+          <div className="flex h-screen">
+            <aside className="w-64 shadow-md">
+              <div className="p-4">
+                <Link href={"/"}>
+                  <h1 className="text-xl font-bold flex items-center">
+                    <TreeIcon className="mr-2" />
+                    Repo Tree Viewer
+                  </h1>
+                </Link>
+              </div>
+              <div>{sidebar}</div>
+            </aside>
+            <main className="flex-1 overflow-x-hidden overflow-y-auto">
+              <RepoHeader session={session} />
+              {children}
+            </main>
+          </div>
+        </TreeViewProvider>
       </body>
     </html>
   );

@@ -31,6 +31,8 @@ type TreeContextProps = {
   openIcon?: React.ReactNode;
   closeIcon?: React.ReactNode;
   direction: "rtl" | "ltr";
+  showIcons: boolean;
+  showFiles: boolean;
 };
 
 const TreeContext = createContext<TreeContextProps | null>(null);
@@ -54,6 +56,8 @@ type TreeViewProps = {
   initialExpendedItems?: string[];
   openIcon?: React.ReactNode;
   closeIcon?: React.ReactNode;
+  showIcons?: boolean;
+  showFiles?: boolean;
 } & TreeViewComponentProps;
 
 const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
@@ -68,6 +72,8 @@ const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
       openIcon,
       closeIcon,
       dir,
+      showIcons = true,
+      showFiles = true,
       ...props
     },
     ref
@@ -149,6 +155,8 @@ const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
           openIcon,
           closeIcon,
           direction,
+          showIcons,
+          showFiles,
         }}
       >
         <div className={cn("size-full", className)}>
@@ -234,6 +242,7 @@ const Folder = forwardRef<
       setExpendedItems,
       openIcon,
       closeIcon,
+      showIcons,
     } = useTree();
 
     return (
@@ -255,9 +264,10 @@ const Folder = forwardRef<
           disabled={!isSelectable}
           onClick={() => handleExpand(value)}
         >
-          {expendedItems?.includes(value)
-            ? openIcon ?? <FolderOpenIcon className="h-4 w-4" />
-            : closeIcon ?? <FolderIcon className="h-4 w-4" />}
+          {showIcons &&
+            (expendedItems?.includes(value)
+              ? openIcon ?? <FolderOpenIcon className="h-4 w-4" />
+              : closeIcon ?? <FolderIcon className="h-4 w-4" />)}
           <span>{element}</span>
         </AccordionPrimitive.Trigger>
         <AccordionPrimitive.Content className="text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down relative overflow-hidden h-full">
@@ -305,8 +315,14 @@ const File = forwardRef<
     },
     ref
   ) => {
-    const { direction, selectedId, selectItem } = useTree();
+    const { direction, selectedId, selectItem, showIcons, showFiles } =
+      useTree();
     const isSelected = isSelect ?? selectedId === value;
+
+    if (!showFiles) {
+      return null;
+    }
+
     return (
       <AccordionPrimitive.Item value={value} className="relative">
         <AccordionPrimitive.Trigger
@@ -325,7 +341,7 @@ const File = forwardRef<
           )}
           onClick={() => selectItem(value)}
         >
-          {fileIcon ?? <FileIcon className="h-4 w-4" />}
+          {showIcons && (fileIcon ?? <FileIcon className="h-4 w-4" />)}
           {children}
         </AccordionPrimitive.Trigger>
       </AccordionPrimitive.Item>

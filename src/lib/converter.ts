@@ -5,64 +5,41 @@ import { serialize, deserialize } from "./serializer";
 const sortTreeElements = (a: TreeViewElement, b: TreeViewElement): number => {
   if (a.children && !b.children) return -1;
   if (!a.children && b.children) return 1;
-  return a.name.localeCompare(b.name);
+  return a.name.localeCompare(b.name, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
 };
 
-const updateTreeMap = (
-  map: Map<string, TreeViewElement>,
-  parts: string[],
-  index: number,
-  element: TreeViewElement
-): Map<string, TreeViewElement> => {
-  const currentPath = parts.slice(0, index + 1).join("/");
-  const parentPath = parts.slice(0, index).join("/");
-
-  if (!map.has(currentPath)) {
-    const newElement =
-      index === parts.length - 1
-        ? element
-        : createTreeElement({ path: currentPath, type: "tree" });
-
-    map.set(currentPath, newElement);
-
-    if (parentPath) {
-      const parent = map.get(parentPath);
-      if (parent) {
-        map.set(parentPath, addToParent(newElement, parent));
-      }
-    }
-  }
-
-  return map;
-};
-
-const createTreeElement = (
-  item: Partial<GitTreeItem> & { path: string }
-): TreeViewElement => ({
+const createTreeElement = (item: GitTreeItem): TreeViewElement => ({
   id: item.path,
   name: item.path.split("/").pop() || "",
   isSelectable: true,
   children: item.type === "tree" ? [] : undefined,
 });
 
-const addToParent = (
-  element: TreeViewElement,
-  parent: TreeViewElement
-): TreeViewElement => ({
-  ...parent,
-  children: [...(parent.children || []), element].sort(sortTreeElements),
-});
+export const buildTreeStructure = (tree: GitTreeItem[]): TreeViewElement[] => {
+  const root: TreeViewElement[] = [];
+  const map = new Map<string, TreeViewElement>();
 
-const buildTreeMap = (tree: GitTreeItem[]): Map<string, TreeViewElement> =>
-  tree.reduce((pathMap, item) => {
-    const pathParts = item.path.split("/");
+  tree.forEach((item) => {
     const element = createTreeElement(item);
+    map.set(item.path, element);
 
-    return pathParts.reduce(
-      (map, _, index, parts) => updateTreeMap(map, parts, index, element),
-      pathMap
-    );
-  }, new Map<string, TreeViewElement>());
+    const parentPath = item.path.split("/").slice(0, -1).join("/");
+    const parent = parentPath ? map.get(parentPath) : null;
+
+    if (parent) {
+      parent.children = parent.children || [];
+      parent.children.push(element);
+      parent.children.sort(sortTreeElements);
+    } else {
+      root.push(element);
+    }
+  });
+
+  return root.sort(sortTreeElements);
+};
 
 export const convertToTreeViewElement = (
   repoName: string,
@@ -72,10 +49,8 @@ export const convertToTreeViewElement = (
   if (!tree || tree.length === 0) {
     return null;
   }
-  const treeMap = buildTreeMap(tree);
-  const treeViewElements = Array.from(treeMap.values())
-    .filter((element) => !element.id.includes("/"))
-    .sort(sortTreeElements);
+
+  const treeViewElements = buildTreeStructure(tree);
 
   const repoContext = {
     repoName,

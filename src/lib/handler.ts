@@ -6,7 +6,7 @@ type ProcessedRepo = Repository & {
   compressedContext: string | null;
 };
 
-const getCompressedContext = async (
+export const getCompressedContext = async (
   repoName: string,
   defaultBranch: string
 ): Promise<string | null> => {
