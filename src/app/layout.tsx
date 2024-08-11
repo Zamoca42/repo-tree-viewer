@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { FolderTree as TreeIcon } from "lucide-react";
-import { auth } from "@/lib/auth";
 import { cn } from "@/lib/util";
-import { RepoHeader } from "@/component/header";
 import Link from "next/link";
 import { TreeViewProvider } from "@/context/view-filter";
 
@@ -22,7 +20,6 @@ export default async function RootLayout({
   children: React.ReactNode;
   sidebar: React.ReactNode;
 }>) {
-  const session = await auth();
   return (
     <html lang="en">
       <body
@@ -45,7 +42,6 @@ export default async function RootLayout({
               <div>{sidebar}</div>
             </aside>
             <main className="flex-1 overflow-x-hidden overflow-y-auto">
-              <RepoHeader session={session} />
               {children}
             </main>
           </div>

@@ -1,3 +1,5 @@
+"use client";
+
 import { TreeView } from "@/component/tree-view";
 import { decodeTreeViewElement } from "@/lib/converter";
 import { TreeViewElement } from "@/component/tree-view-api";
@@ -7,6 +9,14 @@ type RepoTreeContentProps = {
   repoName?: string;
   branch?: string;
 };
+
+export const CenteredMessage = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center p-8 max-w-md mx-auto bg-white shadow-lg rounded-lg">
+      {children}
+    </div>
+  </div>
+);
 
 export function RepoTreeContent({
   treeData,
@@ -19,19 +29,19 @@ export function RepoTreeContent({
     treeData: TreeViewElement[];
   };
 
-  if (typeof treeData === "string") {
-    try {
+  try {
+    if (typeof treeData === "string") {
       decodedData = decodeTreeViewElement(treeData);
-    } catch (error) {
-      console.error("Error decoding repo context:", error);
-      return <div>Error loading repository data. Please try again later.</div>;
+    } else {
+      decodedData = {
+        repoName: repoName || "Unknown Repository",
+        branch: branch || "Unknown Branch",
+        treeData: treeData,
+      };
     }
-  } else {
-    decodedData = {
-      repoName: repoName || "Unknown Repository",
-      branch: branch || "Unknown Branch",
-      treeData: treeData,
-    };
+  } catch (error) {
+    console.error("Error decoding repo context:", error);
+    return <div>Error loading repository data. Please try again later.</div>;
   }
 
   const {

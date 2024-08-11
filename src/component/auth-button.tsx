@@ -17,8 +17,11 @@ export function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await signOut();
+    await signOut({ redirect: false });
     router.push("/");
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (

@@ -1,6 +1,7 @@
 import { getRepoTree } from "@/lib/github";
-import { convertToTreeViewElement } from "@/lib/converter";
+import { buildTreeStructure, convertToTreeViewElement } from "@/lib/converter";
 import { Repository } from "@/type";
+import { TreeViewElement } from "@/component/tree-view-api";
 
 type ProcessedRepo = Repository & {
   compressedContext: string | null;
@@ -30,26 +31,15 @@ export const getCompressedContext = async (
   return compressedContext;
 };
 
-export const processRepository = async (
-  repo: Repository
-): Promise<ProcessedRepo> => {
-  try {
-    const compressedContext = await getCompressedContext(
-      repo.name,
-      repo.default_branch
-    );
-    return {
-      ...repo,
-      compressedContext,
-    };
-  } catch (error) {
-    console.error(`Error processing repository ${repo.name}:`, error);
-    return { ...repo, compressedContext: null };
-  }
-};
+export async function getTreeData(
+  name: string,
+  branch: string
+): Promise<TreeViewElement[]> {
+  const treeData = await getRepoTree(name, branch);
 
-export const processRepositories = async (
-  repos: Repository[]
-): Promise<ProcessedRepo[]> => {
-  return Promise.all(repos.map(processRepository));
-};
+  if (!treeData || !treeData.tree) {
+    throw new Error(`Empty tree data for repository: ${name}`);
+  }
+
+  return buildTreeStructure(treeData.tree);
+}

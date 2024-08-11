@@ -4,10 +4,7 @@ import { fetchRepositories } from "@/lib/github";
 
 export default async function SidebarPage() {
   const session = await auth();
+  const repos = session ? await fetchRepositories() : [];
 
-  if (!session) return null;
-
-  const repos = await fetchRepositories();
-
-  return <Sidebar repos={repos} />;
+  return <Sidebar session={session} repos={repos} />;
 }

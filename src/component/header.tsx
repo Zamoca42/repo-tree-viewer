@@ -1,23 +1,36 @@
 "use client";
 
-import { LoginButton, LogoutButton } from "@/component/auth-button";
-import Image from "next/image";
-import { Session } from "next-auth";
 import { useSearchParams } from "next/navigation";
 import { Checkbox } from "@/component/ui/checkbox";
 import { useTreeView } from "@/context/view-filter";
 import { decodeTreeViewElement } from "@/lib/converter";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Button } from "@/component/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/component/ui/dropdown-menu";
+import {
+  ClipboardIcon,
+  DownloadIcon,
+  LinkIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
+import { convertTreeToMarkdown } from "@/lib/markdown";
+import { TreeViewElement } from "@/component/tree-view-api";
 
 type RepoHeaderProps = {
-  session: Session | null;
+  treeData: string | TreeViewElement[];
 };
 
-export function RepoHeader({ session }: RepoHeaderProps) {
+export function RepoHeader({ treeData }: RepoHeaderProps) {
   const searchParams = useSearchParams();
   const name = searchParams.get("n");
   const tree = searchParams.get("t");
   const { showIcons, showFiles, setShowIcons, setShowFiles } = useTreeView();
+  const [isCopied, setIsCopied] = useState(false);
 
   const repoName = useMemo(() => {
     if (tree) {
@@ -31,6 +44,43 @@ export function RepoHeader({ session }: RepoHeaderProps) {
     }
     return name ?? "Repository Tree";
   }, [name, tree]);
+
+  const markdownTree = useMemo(() => {
+    if (typeof treeData === "string") {
+      const decodedData = decodeTreeViewElement(treeData);
+      return convertTreeToMarkdown(decodedData.treeData, showIcons, showFiles);
+    } else {
+      return convertTreeToMarkdown(treeData, showIcons, showFiles);
+    }
+  }, [treeData, showIcons, showFiles]);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(markdownTree);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
+  const downloadMarkdown = () => {
+    const blob = new Blob([markdownTree], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${repoName}-tree.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const shareUrl = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    alert("URL copied to clipboard!");
+  };
 
   return (
     <header className="shadow-sm">
@@ -57,22 +107,28 @@ export function RepoHeader({ session }: RepoHeaderProps) {
               Show Files
             </label>
           </div>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <MoreHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={copyToClipboard}>
+                <ClipboardIcon className="mr-2 h-4 w-4" />
+                {isCopied ? "Copied!" : "Copy to Clipboard"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={downloadMarkdown}>
+                <DownloadIcon className="mr-2 h-4 w-4" />
+                Download Markdown
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={shareUrl}>
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Share URL
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        {session ? (
-          <div className="flex items-center space-x-2">
-            <Image
-              src={session.user?.image ?? ""}
-              alt={session.user?.name ?? ""}
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-full"
-            />
-            <span className="md:block hidden">{session.user?.name}</span>
-            <LogoutButton />
-          </div>
-        ) : (
-          <LoginButton />
-        )}
       </div>
     </header>
   );

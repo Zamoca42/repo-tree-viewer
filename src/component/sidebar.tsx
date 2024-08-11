@@ -1,5 +1,7 @@
 "use client";
 
+import { LoginButton, LogoutButton } from "@/component/auth-button";
+import Image from "next/image";
 import { Repository } from "@/type";
 import { GitFork, Lock, Unlock } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -10,8 +12,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/component/ui/accordion";
+import { Session } from "next-auth";
 
-export function Sidebar({ repos }: { repos: Repository[] }) {
+export function Sidebar({
+  session,
+  repos,
+}: {
+  session: Session | null;
+  repos: Repository[];
+}) {
   const router = useRouter();
   const [loadingRepo, setLoadingRepo] = useState<string | null>(null);
 
@@ -57,13 +66,13 @@ export function Sidebar({ repos }: { repos: Repository[] }) {
   );
 
   return (
-    <nav>
-      <div className="px-4 py-2">
-        <h2 className="text-sm font-semibold text-gray-600">
-          Your Repositories
-        </h2>
-      </div>
-      <div className="h-[90vh] overflow-y-auto px-2">
+    <nav className="flex flex-col h-[94vh]">
+      <div className="flex-grow overflow-y-auto">
+        <div className="px-4 py-2">
+          <h2 className="text-sm font-semibold text-gray-600">
+            Your Repositories
+          </h2>
+        </div>
         <Accordion type="multiple" defaultValue={["public"]}>
           <AccordionItem value="public">
             <AccordionTrigger>Public ({publicRepos.length})</AccordionTrigger>
@@ -78,6 +87,23 @@ export function Sidebar({ repos }: { repos: Repository[] }) {
             <AccordionContent>{renderRepoList(forkRepos)}</AccordionContent>
           </AccordionItem>
         </Accordion>
+      </div>
+      <div className="p-4 border-t">
+        {session ? (
+          <div className="flex items-center space-x-2">
+            <Image
+              src={session.user?.image ?? ""}
+              alt={session.user?.name ?? ""}
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-full"
+            />
+            <span className="md:block hidden">{session.user?.name}</span>
+            <LogoutButton />
+          </div>
+        ) : (
+          <LoginButton />
+        )}
       </div>
     </nav>
   );
