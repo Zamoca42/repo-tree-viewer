@@ -16,6 +16,10 @@
   .text-responsive {
     @apply text-sm md:text-base;
   }
+
+  .message-title {
+    @apply text-xl font-semibold mb-4
+  }
 }
 
 @layer base {

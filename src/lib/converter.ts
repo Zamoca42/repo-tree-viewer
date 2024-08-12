@@ -1,6 +1,6 @@
 import { TreeViewElement } from "@/component/tree-view-api";
 import { GitTreeItem } from "@/type";
-import { serialize, deserialize } from "./serializer";
+import { deserialize } from "@/lib/serializer";
 
 const sortTreeElements = (a: TreeViewElement, b: TreeViewElement): number => {
   if (a.children && !b.children) return -1;
@@ -41,41 +41,8 @@ export const buildTreeStructure = (tree: GitTreeItem[]): TreeViewElement[] => {
   return root.sort(sortTreeElements);
 };
 
-export const convertToTreeViewElement = (
-  repoName: string,
-  branch: string,
-  tree: GitTreeItem[]
-): string | null => {
-  if (!tree || tree.length === 0) {
-    return null;
-  }
-
-  const treeViewElements = buildTreeStructure(tree);
-
-  const repoContext = {
-    repoName,
-    branch,
-    treeData: treeViewElements,
-  };
-
-  return serialize(repoContext);
-};
-
 export const decodeTreeViewElement = (
   compressed: string
-): { repoName: string; branch: string; treeData: TreeViewElement[] } => {
+): { repoName: string; elements: TreeViewElement[] } => {
   return deserialize(compressed);
-};
-
-export const getRepoName = (
-  tree: string | null,
-  name: string | null
-): string => {
-  if (!tree) return name ?? "Repository Tree";
-  try {
-    return decodeTreeViewElement(tree).repoName;
-  } catch (error) {
-    console.error("Error decoding tree data:", error);
-    return "Error decoding repository name";
-  }
 };

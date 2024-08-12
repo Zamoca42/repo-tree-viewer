@@ -17,7 +17,7 @@ export function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
+    await signOut();
     router.push("/");
     setTimeout(() => {
       window.location.reload();

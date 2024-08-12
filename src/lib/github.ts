@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
-import { Repository, GitTreeResponse } from "@/type";
+import { Repository, GitTreeResponse, GitTreeItem } from "@/type";
 import ky from "ky";
+import { Session } from "next-auth";
 
 const createGitHubClient = (accessToken: string) =>
   ky.extend({
@@ -18,7 +19,7 @@ const handleApiError = (error: unknown) => {
   throw error;
 };
 
-const validateSession = (session: any) => {
+const validateSession = (session: Session | null) => {
   if (!session?.accessToken) {
     throw new Error("No access token");
   }
@@ -40,7 +41,7 @@ export const fetchRepositories = async (): Promise<Repository[]> => {
 export const getRepoTree = async (
   repoName: string,
   branch: string
-): Promise<GitTreeResponse> => {
+): Promise<GitTreeItem[]> => {
   const session = await auth();
   const accessToken = validateSession(session);
 
@@ -60,7 +61,7 @@ export const getRepoTree = async (
       throw new Error("Invalid repository tree data structure");
     }
 
-    return data;
+    return data.tree;
   } catch (error) {
     return handleApiError(error);
   }

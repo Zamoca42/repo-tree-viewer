@@ -21,3 +21,10 @@ export interface GitTreeResponse {
   url: string;
   tree: GitTreeItem[];
 }
+
+export type ErrorMessageProps = {
+  title: string;
+  message: string;
+  action?: React.ReactNode;
+};
+

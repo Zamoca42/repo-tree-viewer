@@ -8,28 +8,31 @@ import { RepoHeaderDropdown } from "@/component/menu";
 import { RepoViewOptions } from "./filter";
 import { downloadMarkdown, generateMarkdownTree } from "@/lib/markdown";
 import { copyToClipboard, generateShareableUrl } from "@/lib/share";
-import { getRepoName } from "@/lib/converter";
 
 type RepoHeaderProps = {
-  treeData: string | TreeViewElement[];
+  name: string;
+  treeStructure: TreeViewElement[];
 };
 
-export function RepoHeader({ treeData }: RepoHeaderProps) {
+export function RepoHeader({ name, treeStructure }: RepoHeaderProps) {
   const searchParams = useSearchParams();
-  const name = searchParams.get("n");
-  const branch = searchParams.get("b");
-  const tree = searchParams.get("t");
   const { showIcons, showFiles, setShowIcons, setShowFiles } = useTreeView();
   const [isCopied, setIsCopied] = useState(false);
+  const treeParam = searchParams.get("t");
 
-  const repoName = useMemo(() => getRepoName(tree, name), [tree, name]);
+  const repoName = name ? `Repository: ${name}` : "Repository Tree";
 
   const markdownTree = useMemo(
-    () => generateMarkdownTree(treeData, showIcons, showFiles),
-    [treeData, showIcons, showFiles]
+    () => generateMarkdownTree(treeStructure, showIcons, showFiles),
+    [treeStructure, showIcons, showFiles]
   );
 
   const handleCopyToClipboard = async () => {
+    if (markdownTree === null) {
+      alert("No content to copy. The tree is empty.");
+      return;
+    }
+
     try {
       await copyToClipboard(markdownTree);
       setIsCopied(true);
@@ -40,12 +43,20 @@ export function RepoHeader({ treeData }: RepoHeaderProps) {
   };
 
   const handleDownloadMarkdown = () => {
+    if (markdownTree === null) {
+      alert("No content to download. The tree is empty.");
+      return;
+    }
     downloadMarkdown(markdownTree, `${repoName}-tree.md`);
   };
 
   const handleShareUrl = async () => {
     try {
-      const sharedUrl = await generateShareableUrl(name, branch, tree);
+      const sharedUrl = await generateShareableUrl(
+        treeStructure,
+        treeParam,
+        name
+      );
       await copyToClipboard(sharedUrl);
       alert(
         `Shareable URL copied to clipboard! (${sharedUrl.length} characters)`
@@ -64,7 +75,7 @@ export function RepoHeader({ treeData }: RepoHeaderProps) {
     <header className="shadow-sm">
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <h2 className="text-lg font-semibold">Repository: {repoName}</h2>
+          <h2 className="text-lg font-semibold">{repoName}</h2>
           <RepoViewOptions
             showIcons={showIcons}
             showFiles={showFiles}

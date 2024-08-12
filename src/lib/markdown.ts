@@ -1,55 +1,48 @@
 import { TreeViewElement } from "@/component/tree-view-api";
-import { decodeTreeViewElement } from "@/lib/converter";
 
-function treeToMarkdown(
+const treeToMarkdown = (
   tree: TreeViewElement[],
   showIcons: boolean = true,
   showFiles: boolean = true,
-  level: number = 0
-): string {
+  level: number = 0,
+  prefix: string = ""
+): string => {
   let result = "";
 
   const visibleItems = showFiles ? tree : tree.filter((item) => item.children);
 
   visibleItems.forEach((item, index) => {
     const isLast = index === visibleItems.length - 1;
-    const prefix = level === 0 ? "" : isLast ? "└─ " : "├─ ";
-    const indent = "│  ".repeat(level);
+    const currentPrefix = isLast ? "└─ " : "├─ ";
+    const nextPrefix = isLast ? "   " : "│  ";
 
     const folderIcon = showIcons ? "📁 " : "";
     const fileIcon = showIcons ? "📄 " : "";
 
     if (item.children) {
-      result += `${indent}${prefix}${folderIcon}${item.name}\n`;
-      result += treeToMarkdown(item.children, showIcons, showFiles, level + 1);
+      result += `${prefix}${currentPrefix}${folderIcon}${item.name}\n`;
+      result += treeToMarkdown(
+        item.children,
+        showIcons,
+        showFiles,
+        level + 1,
+        prefix + nextPrefix
+      );
     } else if (showFiles) {
-      result += `${indent}${prefix}${fileIcon}${item.name}\n`;
+      result += `${prefix}${currentPrefix}${fileIcon}${item.name}\n`;
     }
   });
 
   return result;
-}
+};
 
-export function convertTreeToMarkdown(
+export const generateMarkdownTree = (
   tree: TreeViewElement[],
   showIcons: boolean = true,
   showFiles: boolean = true
-): string {
-  let result = ``;
-  result += treeToMarkdown(tree, showIcons, showFiles);
-  return result;
-}
-
-export const generateMarkdownTree = (
-  treeData: string | TreeViewElement[],
-  showIcons: boolean,
-  showFiles: boolean
-): string => {
-  const data =
-    typeof treeData === "string"
-      ? decodeTreeViewElement(treeData).treeData
-      : treeData;
-  return convertTreeToMarkdown(data, showIcons, showFiles);
+): string | null => {
+  const markdownTree = treeToMarkdown(tree, showIcons, showFiles);
+  return markdownTree || null;
 };
 
 export const downloadMarkdown = (content: string, fileName: string): void => {
