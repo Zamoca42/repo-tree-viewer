@@ -12,7 +12,6 @@ const fromUrlSafeBase64 = (urlSafe: string): string => {
 
 export const serializePako = (data: any): string => {
   const jsonString = JSON.stringify(data);
-  console.log(jsonString);
   const compressed = pako.deflate(jsonString);
   const base64 = btoa(String.fromCharCode.apply(null, Array.from(compressed)));
   return toUrlSafeBase64(base64);

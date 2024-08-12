@@ -66,3 +66,16 @@ export const decodeTreeViewElement = (
 ): { repoName: string; branch: string; treeData: TreeViewElement[] } => {
   return deserialize(compressed);
 };
+
+export const getRepoName = (
+  tree: string | null,
+  name: string | null
+): string => {
+  if (!tree) return name ?? "Repository Tree";
+  try {
+    return decodeTreeViewElement(tree).repoName;
+  } catch (error) {
+    console.error("Error decoding tree data:", error);
+    return "Error decoding repository name";
+  }
+};

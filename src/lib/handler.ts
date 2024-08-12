@@ -1,11 +1,6 @@
 import { getRepoTree } from "@/lib/github";
 import { buildTreeStructure, convertToTreeViewElement } from "@/lib/converter";
-import { Repository } from "@/type";
 import { TreeViewElement } from "@/component/tree-view-api";
-
-type ProcessedRepo = Repository & {
-  compressedContext: string | null;
-};
 
 export const getCompressedContext = async (
   repoName: string,
@@ -36,10 +31,5 @@ export async function getTreeData(
   branch: string
 ): Promise<TreeViewElement[]> {
   const treeData = await getRepoTree(name, branch);
-
-  if (!treeData || !treeData.tree) {
-    throw new Error(`Empty tree data for repository: ${name}`);
-  }
-
   return buildTreeStructure(treeData.tree);
 }

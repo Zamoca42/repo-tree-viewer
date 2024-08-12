@@ -1,4 +1,5 @@
 import { TreeViewElement } from "@/component/tree-view-api";
+import { decodeTreeViewElement } from "@/lib/converter";
 
 function treeToMarkdown(
   tree: TreeViewElement[],
@@ -34,7 +35,29 @@ export function convertTreeToMarkdown(
   showIcons: boolean = true,
   showFiles: boolean = true
 ): string {
-  let result = `\n`;
+  let result = ``;
   result += treeToMarkdown(tree, showIcons, showFiles);
   return result;
 }
+
+export const generateMarkdownTree = (
+  treeData: string | TreeViewElement[],
+  showIcons: boolean,
+  showFiles: boolean
+): string => {
+  const data =
+    typeof treeData === "string"
+      ? decodeTreeViewElement(treeData).treeData
+      : treeData;
+  return convertTreeToMarkdown(data, showIcons, showFiles);
+};
+
+export const downloadMarkdown = (content: string, fileName: string): void => {
+  const blob = new Blob([content], { type: "text/markdown" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+};
