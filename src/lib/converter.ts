@@ -1,6 +1,5 @@
 import { TreeViewElement } from "@/component/tree-view-api";
 import { GitTreeItem } from "@/type";
-import { deserialize } from "@/lib/serializer";
 
 const sortTreeElements = (a: TreeViewElement, b: TreeViewElement): number => {
   if (a.children && !b.children) return -1;
@@ -41,8 +40,4 @@ export const buildTreeStructure = (tree: GitTreeItem[]): TreeViewElement[] => {
   return root.sort(sortTreeElements);
 };
 
-export const decodeTreeViewElement = (
-  compressed: string
-): { repoName: string; elements: TreeViewElement[] } => {
-  return deserialize(compressed);
-};
+

@@ -5,18 +5,14 @@ import { getCompressedContext } from "@/lib/handler";
 export const generateShareableUrl = async (
   tree: TreeViewElement[],
   treeParam: string | null,
-  name: string | null
+  name: string
 ): Promise<string> => {
-  let sharedUrl: string;
   const baseUrl = window.location.origin;
+  const compressedData = treeParam || (await getCompressedContext(name, tree));
+  const sharedUrl = `${baseUrl}/repo?t=${compressedData}`;
 
-  if (tree && name) {
-    const compressedContext = await getCompressedContext(name, tree);
-    sharedUrl = `${baseUrl}/repo?t=${compressedContext}`;
-  } else if (treeParam) {
-    sharedUrl = `${baseUrl}/repo?t=${tree}`;
-  } else {
-    throw new Error("Invalid parameters for sharing URL");
+  if (!compressedData) {
+    throw new Error("Failed to generate compressed context");
   }
 
   if (sharedUrl.length > MAX_URL_LENGTH) {

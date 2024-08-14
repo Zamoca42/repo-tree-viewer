@@ -1,13 +1,13 @@
 import { getRepoTree } from "@/lib/github";
 import { buildTreeStructure } from "@/lib/converter";
 import { TreeViewElement } from "@/component/tree-view-api";
-import { serialize } from "@/lib/serializer";
+import { deserialize, serialize } from "@/lib/serializer";
 
 export const getCompressedContext = async (
   repoName: string,
   treeStructure: TreeViewElement[]
 ): Promise<string | null> => {
-  if (!treeStructure) {
+  if (!treeStructure || treeStructure.length === 0) {
     console.warn(`Empty tree data for repository: ${repoName}`);
     return null;
   }
@@ -31,4 +31,10 @@ export const getTreeStructure = async (
 ): Promise<TreeViewElement[]> => {
   const tree = await getRepoTree(name, branch);
   return buildTreeStructure(tree);
-}
+};
+
+export const decodeTreeViewElement = (
+  compressed: string
+): { repoName: string; elements: TreeViewElement[] } => {
+  return deserialize(compressed);
+};

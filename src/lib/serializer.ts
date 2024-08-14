@@ -1,10 +1,10 @@
 import pako from "pako";
 
-const toUrlSafeBase64 = (base64: string): string => {
+export const toUrlSafeBase64 = (base64: string): string => {
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 };
 
-const fromUrlSafeBase64 = (urlSafe: string): string => {
+export const fromUrlSafeBase64 = (urlSafe: string): string => {
   let base64 = urlSafe.replace(/-/g, "+").replace(/_/g, "/");
   while (base64.length % 4) base64 += "=";
   return base64;
