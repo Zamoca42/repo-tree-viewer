@@ -17,7 +17,7 @@
 - **Language**: TypeScript
 - **Authentication**: NextAuth.js (Auth.js v5)
 - **Styling**: Tailwind CSS
-- **Data Compression**: pako
+- **Data Compression**: zlib
 - **API Requests**: ky
 - **Deployment**: Vercel
 

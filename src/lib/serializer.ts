@@ -1,4 +1,4 @@
-import pako from "pako";
+import { deflateSync, inflateSync } from "zlib";
 
 export const toUrlSafeBase64 = (base64: string): string => {
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
@@ -10,24 +10,20 @@ export const fromUrlSafeBase64 = (urlSafe: string): string => {
   return base64;
 };
 
-export const serializePako = (data: any): string => {
+export const serializeZlib = (data: any): string => {
   const jsonString = JSON.stringify(data);
-  const compressed = pako.deflate(jsonString);
-  const base64 = btoa(String.fromCharCode.apply(null, Array.from(compressed)));
+  const compressed = deflateSync(Buffer.from(jsonString));
+  const base64 = compressed.toString("base64");
   return toUrlSafeBase64(base64);
 };
 
-export const deserializePako = (compressed: string): any => {
+export const deserializeZlib = (compressed: string): any => {
   const base64 = fromUrlSafeBase64(compressed);
-  const binaryString = atob(base64);
-  const charArray = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    charArray[i] = binaryString.charCodeAt(i);
-  }
-  const decompressed = pako.inflate(charArray);
-  const jsonString = new TextDecoder().decode(decompressed);
+  const buffer = Buffer.from(base64, "base64");
+  const decompressed = inflateSync(buffer);
+  const jsonString = decompressed.toString();
   return JSON.parse(jsonString);
 };
 
-export const serialize = serializePako;
-export const deserialize = deserializePako;
+export const serialize = serializeZlib;
+export const deserialize = deserializeZlib;
