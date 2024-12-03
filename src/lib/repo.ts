@@ -1,5 +1,5 @@
-import { decodeTreeViewElement, getTreeStructure } from "@/lib/handler";
-import { TreeStructureSchema, urlSafeBase64Pattern } from "@/lib/schema";
+import { getTreeStructure } from "@/lib/handler";
+import { TreeStructureSchema } from "@/lib/schema";
 import { RepoError } from "@/lib/error";
 import { z } from "zod";
 
@@ -32,28 +32,6 @@ export const getTreeFromRepo = async (
     throw new RepoError(
       "An error occurred while loading repository data. Please try again later.",
       "Error"
-    );
-  }
-};
-
-export const getTreeFromEncoded = (
-  tree: string
-): z.infer<typeof TreeStructureSchema> => {
-  if (!urlSafeBase64Pattern.test(tree)) {
-    throw new RepoError(
-      "The provided tree parameter is not a valid URL-safe base64 string.",
-      "Invalid Tree Parameter"
-    );
-  }
-
-  try {
-    const decodedTree = decodeTreeViewElement(tree);
-    return TreeStructureSchema.parse(decodedTree);
-  } catch (error) {
-    console.error("Error decoding tree structure:", error);
-    throw new RepoError(
-      "The provided tree structure is invalid or corrupted.",
-      "Invalid Tree Structure"
     );
   }
 };

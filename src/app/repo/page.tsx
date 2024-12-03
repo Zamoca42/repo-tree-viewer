@@ -2,7 +2,7 @@ import { RepoTreeContent } from "@/component/content";
 import { RepoHeader } from "@/component/header";
 import { TreeSkeletonLoader } from "@/component/loader";
 import { auth } from "@/lib/auth";
-import { getTreeFromEncoded, getTreeFromRepo } from "@/lib/repo";
+import { getTreeFromRepo } from "@/lib/repo";
 import { TreeStructureSchema } from "@/lib/schema";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -10,16 +10,14 @@ import { z } from "zod";
 export default async function RepoPage({
   searchParams,
 }: {
-  searchParams: { t?: string; n?: string; b?: string };
+  searchParams: { n?: string; b?: string };
 }) {
-  const { t: tree, n: name, b: branch } = searchParams;
+  const { n: name, b: branch } = searchParams;
   const session = await auth();
 
   let treeStructure: z.infer<typeof TreeStructureSchema>;
 
-  if (tree) {
-    treeStructure = getTreeFromEncoded(tree);
-  } else if (name && branch) {
+  if (name && branch) {
     treeStructure = await getTreeFromRepo(name, branch, session);
   } else {
     throw new Error("Invalid Parameters");

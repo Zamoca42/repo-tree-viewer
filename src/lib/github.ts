@@ -32,7 +32,12 @@ export const fetchRepositories = async (): Promise<Repository[]> => {
 
   try {
     const client = createGitHubClient(accessToken);
-    return await client.get("user/repos").json<Repository[]>();
+    return client.get("user/repos", {
+      searchParams: {
+        per_page: "100",
+        sort: "updated",
+      },
+    }).json<Repository[]>();
   } catch (error) {
     return handleApiError(error);
   }

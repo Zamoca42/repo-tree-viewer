@@ -40,4 +40,3 @@ export const buildTreeStructure = (tree: GitTreeItem[]): TreeViewElement[] => {
   return root.sort(sortTreeElements);
 };
 
-
