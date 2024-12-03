@@ -1,10 +1,11 @@
 import { Sidebar } from "@/component/sidebar";
 import { auth } from "@/lib/auth";
-import { fetchRepositories } from "@/lib/github";
+import { GitHubClient } from "@/lib/github";
 
 export default async function SidebarPage() {
   const session = await auth();
-  const repos = session ? await fetchRepositories() : [];
+  const githubClient = new GitHubClient(session);
+  const repos = await githubClient.getRepositories();
 
   return <Sidebar session={session} repos={repos} />;
 }

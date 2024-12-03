@@ -1,63 +1,41 @@
-import { auth } from "@/lib/auth";
-import { Repository, GitTreeResponse, GitTreeItem } from "@/type";
+import { Repository, GitTreeResponse } from "@/type";
 import ky from "ky";
+import { TreeBuilder } from "@/lib/tree";
+import { TreeStructureSchema } from "@/lib/schema";
+import { z } from "zod";
 import { Session } from "next-auth";
 
-const createGitHubClient = (accessToken: string) =>
-  ky.extend({
-    prefixUrl: "https://api.github.com",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+export class GitHubClient {
+  private client: typeof ky;
+  private username: string;
+  private accessToken: string;
 
-const handleApiError = (error: unknown) => {
-  if (error instanceof Error) {
-    console.error("API Error:", error.message);
-    throw new Error(`GitHub API Error: ${error.message}`);
+  constructor(session: Session | null) {
+    this.validateSession(session);
+    this.username = this.getSessionUsername(session);
+    this.accessToken = this.validateAccessToken(session?.accessToken);
+
+    this.client = ky.extend({
+      prefixUrl: "https://api.github.com",
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
   }
-  throw error;
-};
 
-const validateSession = (session: Session | null) => {
-  if (!session?.accessToken) {
-    throw new Error("No access token");
-  }
-  return session.accessToken;
-};
-
-export const fetchRepositories = async (): Promise<Repository[]> => {
-  const session = await auth();
-  const accessToken = validateSession(session);
-
-  try {
-    const client = createGitHubClient(accessToken);
-    return client.get("user/repos", {
+  async getRepositories(page: number = 1): Promise<Repository[]> {
+    return this.client.get("user/repos", {
       searchParams: {
         per_page: "100",
+        page: page.toString(),
         sort: "updated",
-      },
+      }
     }).json<Repository[]>();
-  } catch (error) {
-    return handleApiError(error);
-  }
-};
-
-export const getRepoTree = async (
-  repoName: string,
-  branch: string
-): Promise<GitTreeItem[]> => {
-  const session = await auth();
-  const accessToken = validateSession(session);
-
-  if (!session?.user?.username) {
-    throw new Error("GitHub username not found");
   }
 
-  try {
-    const client = createGitHubClient(accessToken);
-    const data = await client
-      .get(`repos/${session.user.username}/${repoName}/git/trees/${branch}`, {
+  async getStructuredRepoTree(repoName: string, branch: string): Promise<z.infer<typeof TreeStructureSchema>> {
+    const data = await this.client
+      .get(`repos/${this.username}/${repoName}/git/trees/${branch}`, {
         searchParams: { recursive: "1" },
       })
       .json<GitTreeResponse>();
@@ -66,8 +44,29 @@ export const getRepoTree = async (
       throw new Error("Invalid repository tree data structure");
     }
 
-    return data.tree;
-  } catch (error) {
-    return handleApiError(error);
+    return TreeStructureSchema.parse({
+      repoName: repoName,
+      elements: new TreeBuilder(data.tree).build(),
+    });
   }
-};
+
+  private validateSession(session: Session | null): void {
+    if (!session) {
+      throw new Error("Session is required");
+    }
+  }
+
+  private validateAccessToken(accessToken: string | undefined): string {
+    if (!accessToken) {
+      throw new Error("Access token is required");
+    }
+    return accessToken;
+  }
+
+  private getSessionUsername(session: Session | null): string {
+    if (!session?.user?.username) {
+      throw new Error("Username is required");
+    }
+    return session.user.username;
+  }
+}
