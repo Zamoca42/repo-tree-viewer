@@ -19,7 +19,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "ky": "^1.7.2",
-    "lucide-react": "^0.463.0",
+    "lucide-react": "^0.464.0",
     "next": "15.0.3",
     "next-auth": "^5.0.0-beta.25",
     "react": "^18",
