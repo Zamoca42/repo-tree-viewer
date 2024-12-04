@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import { TreeViewElement } from "@/component/tree-view-api";
 import { RepoHeaderDropdown } from "@/component/menu";
 import { RepoViewOptions } from "./filter";
-import { downloadMarkdown, generateMarkdownTree } from "@/lib/markdown";
-import { copyToClipboard } from "@/lib/share";
+import { copyToClipboard, downloadMarkdown } from "@/lib/share";
+import { MarkdownTreeGenerator } from "@/lib/markdown";
 
 type RepoHeaderProps = {
   name: string;
@@ -20,12 +20,12 @@ export function RepoHeader({ name, treeStructure }: RepoHeaderProps) {
   const repoName = name ? `Repository: ${name}` : "Repository Tree";
 
   const markdownTree = useMemo(
-    () => generateMarkdownTree(treeStructure, showIcons, showFiles),
+    () => new MarkdownTreeGenerator(treeStructure, showIcons, showFiles).generate(),
     [treeStructure, showIcons, showFiles]
   );
 
   const handleCopyToClipboard = async () => {
-    if (markdownTree === null) {
+    if (!markdownTree) {
       alert("No content to copy. The tree is empty.");
       return;
     }
@@ -40,11 +40,11 @@ export function RepoHeader({ name, treeStructure }: RepoHeaderProps) {
   };
 
   const handleDownloadMarkdown = () => {
-    if (markdownTree === null) {
+    if (!markdownTree) {
       alert("No content to download. The tree is empty.");
       return;
     }
-    downloadMarkdown(markdownTree, `${repoName}-tree.md`);
+    downloadMarkdown(markdownTree, `${name}-tree.md`);
   };
 
   return (
