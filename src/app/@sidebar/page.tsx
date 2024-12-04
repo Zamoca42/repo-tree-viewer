@@ -9,7 +9,7 @@ export default async function SidebarPage() {
   }
 
   const githubClient = new GitHubClient(session);
-  const repos = await githubClient.getRepositories();
+  const repos = await githubClient.getAllRepositories();
 
   return <Sidebar session={session} repos={repos} />;
 }

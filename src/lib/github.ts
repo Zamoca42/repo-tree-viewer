@@ -1,4 +1,4 @@
-import { Repository, GitTreeResponse } from "@/type";
+import { Repository, GitTreeResponse, InstallationInfo } from "@/type";
 import ky from "ky";
 import { TreeBuilder } from "@/lib/tree";
 import { TreeStructureSchema } from "@/lib/schema";
@@ -9,6 +9,8 @@ export class GitHubClient {
   private client: typeof ky;
   private username: string;
   private accessToken: string;
+  private readonly githubAppName = "repository-tree-viewer";
+  private readonly githubAppId = Number(process.env.GITHUB_APP_ID)!;
 
   constructor(session: Session | null) {
     this.validateSession(session);
@@ -23,14 +25,91 @@ export class GitHubClient {
     });
   }
 
-  async getRepositories(page: number = 1): Promise<Repository[]> {
-    return this.client.get("user/repos", {
-      searchParams: {
-        per_page: "100",
-        page: page.toString(),
-        sort: "updated",
-      }
-    }).json<Repository[]>();
+  async getAppInstallation(): Promise<InstallationInfo | null> {
+    try {
+      const installations = await this.client
+        .get('user/installations')
+        .json<{ installations: InstallationInfo[] }>();
+
+      return installations.installations.find(
+        install => install.app_id === this.githubAppId
+      ) || null;
+    } catch (error) {
+      console.error('Failed to fetch app installation:', error);
+      return null;
+    }
+  }
+
+  async getInstallationRepositories(installationId: number): Promise<Repository[]> {
+    try {
+      const response = await this.client
+        .get(`user/installations/${installationId}/repositories`)
+        .json<{ repositories: Repository[] }>();
+      
+      return response.repositories;
+    } catch (error) {
+      console.error('Failed to fetch installation repositories:', error);
+      return [];
+    }
+  }
+
+  async checkAppInstallation(): Promise<{
+    isInstalled: boolean;
+    installationId?: number;
+    repositories?: Repository[];
+  }> {
+    const installation = await this.getAppInstallation();
+    
+    if (!installation) {
+      return {
+        isInstalled: false
+      };
+    }
+
+    const repositories = await this.getInstallationRepositories(installation.id);
+    
+    return {
+      isInstalled: true,
+      installationId: installation.id,
+      repositories
+    };
+  }
+
+  getAppInstallUrl(): string {
+    return `https://github.com/apps/${this.githubAppName}/installations/new`;
+  }
+
+  async getPublicRepoCount(): Promise<number> {
+    try {
+      const user = await this.client.get('user').json<{
+        public_repos: number;
+      }>();
+
+      return user.public_repos;
+    } catch (error) {
+      console.error('Failed to fetch repository count:', error);
+      return 0;
+    }
+  }
+
+  async getAllRepositories(): Promise<Repository[]> {
+    const totalCount = await this.getPublicRepoCount();
+    const perPage = 100;
+    const totalPages = Math.ceil(totalCount / perPage);
+    const allPublicRepos: Repository[] = [];
+
+    for (let page = 1; page <= totalPages; page++) {
+      const repos = await this.client.get("user/repos", {
+        searchParams: {
+          per_page: perPage.toString(),
+          page: page.toString(),
+          sort: "updated",
+        }
+      }).json<Repository[]>();
+      allPublicRepos.push(...repos);
+    }
+
+    return allPublicRepos;
   }
 
   async getStructuredRepoTree(repoName: string, branch: string): Promise<z.infer<typeof TreeStructureSchema>> {
