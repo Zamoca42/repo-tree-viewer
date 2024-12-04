@@ -5,12 +5,17 @@ import { auth } from "@/lib/auth";
 import { GitHubClient } from "@/lib/github";
 import { Suspense } from "react";
 
-export default async function RepoPage({
-  searchParams,
-}: {
-  searchParams: { n?: string; b?: string };
-}) {
-  const { n: repoName, b: branch } = searchParams;
+type SearchParams = Promise<{
+  n: string;
+  b: string;
+}>;
+
+interface PageProps {
+  searchParams: SearchParams;
+}
+export default async function RepoPage({ searchParams }: PageProps) {
+  const { n: repoName, b: branch } = await searchParams;
+
   if (!repoName || !branch) {
     throw new Error("Invalid Parameters");
   }
