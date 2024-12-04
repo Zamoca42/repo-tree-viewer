@@ -1,3 +1,19 @@
+export interface InstallationInfo {
+  id: number;
+  account: {
+    login: string;
+    id: number;
+  };
+  app_id: number;
+  target_type: string;
+  permissions: {
+    contents: string;
+    metadata: string;
+    [key: string]: string;
+  };
+  repository_selection: 'all' | 'selected';
+}
+
 export interface Repository {
   id: number;
   name: string;

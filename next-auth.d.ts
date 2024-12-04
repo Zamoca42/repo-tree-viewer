@@ -1,7 +1,6 @@
-import type { DefaultSession, DefaultUser } from "@auth/core/types";
-import { JWT } from "@auth/core/jwt";
+import type { DefaultSession, DefaultUser, DefaultJWT } from "next-auth";
 
-declare module "@auth/core/types" {
+declare module "next-auth" {
   interface Session extends DefaultSession {
     accessToken?: string;
     user: {
@@ -16,10 +15,8 @@ declare module "@auth/core/types" {
   interface Profile {
     login?: string;
   }
-}
 
-declare module "@auth/core/jwt" {
-  interface JWT {
+  interface JWT extends DefaultJWT {
     accessToken?: string;
     username?: string;
   }

@@ -8,7 +8,6 @@ import {
 import {
   ClipboardIcon,
   DownloadIcon,
-  LinkIcon,
   MoreHorizontalIcon,
 } from "lucide-react";
 
@@ -16,14 +15,12 @@ type RepoHeaderDropdownProps = {
   isCopied: boolean;
   onCopyToClipboard: () => void;
   onDownloadMarkdown: () => void;
-  onShareUrl: () => void;
 };
 
 export function RepoHeaderDropdown({
   isCopied,
   onCopyToClipboard,
   onDownloadMarkdown,
-  onShareUrl,
 }: RepoHeaderDropdownProps) {
   return (
     <DropdownMenu modal={false}>
@@ -40,10 +37,6 @@ export function RepoHeaderDropdown({
         <DropdownMenuItem onClick={onDownloadMarkdown}>
           <DownloadIcon className="mr-2 h-4 w-4" />
           Download Markdown
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onShareUrl}>
-          <LinkIcon className="mr-2 h-4 w-4" />
-          Share URL
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { generateShareableUrl, copyToClipboard } from "@/lib/share";
-import { getCompressedContext } from "@/lib/handler";
-import { MAX_URL_LENGTH } from "@/lib/constant";
+import { copyToClipboard } from "@/lib/share";
 
 vi.mock("@/lib/handler", () => ({
   getCompressedContext: vi.fn(),
@@ -24,42 +22,6 @@ describe("share", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  describe("generateShareableUrl", () => {
-    it("should use treeParam if provided", async () => {
-      const result = await generateShareableUrl([], "existingParam", "repo");
-      expect(result).toBe("http://localhost:3000/repo?t=existingParam");
-      expect(getCompressedContext).not.toHaveBeenCalled();
-    });
-
-    it("should generate new compressed context if treeParam is not provided", async () => {
-      vi.mocked(getCompressedContext).mockResolvedValue("newCompressedData");
-      const result = await generateShareableUrl(
-        [{ id: "1", name: "file.txt" }],
-        null,
-        "repo"
-      );
-      expect(result).toBe("http://localhost:3000/repo?t=newCompressedData");
-      expect(getCompressedContext).toHaveBeenCalledWith("repo", [
-        { id: "1", name: "file.txt" },
-      ]);
-    });
-
-    it("should throw an error if compressed data is null", async () => {
-      vi.mocked(getCompressedContext).mockResolvedValue(null);
-      await expect(generateShareableUrl([], null, "repo")).rejects.toThrow(
-        "Failed to generate compressed context"
-      );
-    });
-
-    it("should throw an error if URL length exceeds MAX_URL_LENGTH", async () => {
-      const longCompressedData = "a".repeat(MAX_URL_LENGTH);
-      vi.mocked(getCompressedContext).mockResolvedValue(longCompressedData);
-      await expect(generateShareableUrl([], null, "repo")).rejects.toThrow(
-        /URL length .* exceeds maximum allowed length/
-      );
-    });
   });
 
   describe("copyToClipboard", () => {

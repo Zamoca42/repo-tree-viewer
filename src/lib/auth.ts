@@ -6,7 +6,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     GitHub({
       authorization: {
         params: {
-          scope: "read:user user:email repo",
+          scope: "read:user user:email",
         },
       },
     }),
@@ -22,10 +22,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       return {
         ...session,
-        accessToken: token.accessToken,
+        accessToken: token.accessToken as string,
         user: {
           ...session.user,
-          username: token.username,
+          username: token.username as string,
         },
       };
     },
