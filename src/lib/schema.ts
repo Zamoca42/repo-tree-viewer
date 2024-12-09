@@ -12,7 +12,4 @@ export const TreeViewElementSchema: z.ZodType<TreeViewElement> = z.lazy(() =>
   })
 );
 
-export const TreeStructureSchema = z.object({
-  repoName: z.string(),
-  elements: z.array(TreeViewElementSchema),
-});
+export const TreeStructureSchema = z.array(TreeViewElementSchema);

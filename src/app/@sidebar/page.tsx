@@ -1,15 +1,7 @@
-import { Sidebar } from "@/component/sidebar";
-import { auth } from "@/lib/auth";
-import { GitHubClient } from "@/lib/github";
+import { AppSidebar } from "@/component/sidebar/app-sidebar";
+import { getSidebarData } from "@/lib/sidebar";
 
 export default async function SidebarPage() {
-  const session = await auth();
-  if (!session) {
-    return <Sidebar session={null} repos={[]} />;
-  }
-
-  const githubClient = new GitHubClient(session);
-  const repos = await githubClient.getAllRepositories();
-
-  return <Sidebar session={session} repos={repos} />;
+  const { user, publicRepo } = await getSidebarData();
+  return <AppSidebar user={user} publicRepo={publicRepo} />;
 }

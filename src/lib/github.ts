@@ -92,7 +92,7 @@ export class GitHubClient {
     }
   }
 
-  async getAllRepositories(): Promise<Repository[]> {
+  async getAllPublicRepositories(): Promise<Repository[]> {
     const totalCount = await this.getPublicRepoCount();
     const perPage = 100;
     const totalPages = Math.ceil(totalCount / perPage);
@@ -123,10 +123,7 @@ export class GitHubClient {
       throw new Error("Invalid repository tree data structure");
     }
 
-    return TreeStructureSchema.parse({
-      repoName: repoName,
-      elements: new TreeBuilder(data.tree).build(),
-    });
+    return TreeStructureSchema.parse(new TreeBuilder(data.tree).build());
   }
 
   private validateSession(session: Session | null): void {

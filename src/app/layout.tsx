@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { FolderTree as TreeIcon } from "lucide-react";
+import "@/app/globals.css";
 import { cn } from "@/lib/util";
-import Link from "next/link";
 import { TreeViewProvider } from "@/context/view-filter";
 import { APP_DESCRIPTION, APP_TITLE } from "@/lib/constant";
+import { SidebarInset, SidebarProvider } from "@/component/ui/sidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -57,22 +56,14 @@ export default async function RootLayout({
         )}
       >
         <TreeViewProvider>
-          <div className="flex h-screen">
-            <aside className="w-64 shadow-md">
-              <div className="p-4">
-                <Link href={"/"}>
-                  <h1 className="text-xl font-bold flex items-center">
-                    <TreeIcon className="mr-2" />
-                    Repo Tree Viewer
-                  </h1>
-                </Link>
-              </div>
-              <div>{sidebar}</div>
-            </aside>
-            <main className="flex-1 overflow-x-hidden overflow-y-auto">
-              {children}
-            </main>
-          </div>
+          <SidebarProvider>
+            <aside>{sidebar}</aside>
+            <SidebarInset>
+              <main className="flex-1 overflow-x-hidden overflow-y-auto">
+                {children}
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
         </TreeViewProvider>
       </body>
     </html>

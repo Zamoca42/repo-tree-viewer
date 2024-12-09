@@ -1,3 +1,5 @@
+import { type Session } from "next-auth";
+
 export interface InstallationInfo {
   id: number;
   account: {
@@ -21,6 +23,12 @@ export interface Repository {
   html_url: string;
   default_branch: string;
   fork: boolean;
+}
+
+export interface User {
+  name: Exclude<Session["user"]["name"], null | undefined>;
+  email: Exclude<Session["user"]["email"], null | undefined>;
+  avatar: Exclude<Session["user"]["image"], null | undefined>;
 }
 
 export interface GitTreeItem {
