@@ -4,23 +4,41 @@ import { TreeBuilder } from "@/lib/tree";
 import { TreeStructureSchema } from "@/lib/schema";
 import { z } from "zod";
 import { Session } from "next-auth";
+import jwt from 'jsonwebtoken';
+
+export class GitHubAppAuth {
+  private readonly githubAppClientId: string;
+  private readonly privateKey: string;
+
+  constructor() {
+    this.githubAppClientId = process.env.AUTH_GITHUB_ID!
+    this.privateKey = process.env.GITHUB_APP_PRIVATE_KEY!.replace(/\\n/g, '\n');
+  }
+
+  createAppToken(): string {
+    return jwt.sign(
+      { iss: this.githubAppClientId },
+      this.privateKey,
+      { algorithm: 'RS256', expiresIn: '10m' }
+    );
+  }
+}
 
 export class GitHubClient {
   private client: typeof ky;
   private username: string;
-  private accessToken: string;
+  private oauthToken: string;
   private readonly githubAppName = "repository-tree-viewer";
-  private readonly githubAppId = Number(process.env.GITHUB_APP_ID)!;
+  private readonly githubAppClientId = process.env.GITHUB_APP_CLIENT_ID!;
 
   constructor(session: Session | null) {
-    this.validateSession(session);
     this.username = this.getSessionUsername(session);
-    this.accessToken = this.validateAccessToken(session?.accessToken);
+    this.oauthToken = this.validateAccessToken(session?.accessToken);
 
     this.client = ky.extend({
       prefixUrl: "https://api.github.com",
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${this.oauthToken}`,
       },
     });
   }
@@ -32,7 +50,7 @@ export class GitHubClient {
         .json<{ installations: InstallationInfo[] }>();
 
       return installations.installations.find(
-        install => install.app_id === this.githubAppId
+        install => install.client_id === this.githubAppClientId
       ) || null;
     } catch (error) {
       console.error('Failed to fetch app installation:', error);
@@ -124,12 +142,6 @@ export class GitHubClient {
     }
 
     return TreeStructureSchema.parse(new TreeBuilder(data.tree).build());
-  }
-
-  private validateSession(session: Session | null): void {
-    if (!session) {
-      throw new Error("Session is required");
-    }
   }
 
   private validateAccessToken(accessToken: string | undefined): string {

@@ -2,6 +2,7 @@ import { type Session } from "next-auth";
 
 export interface InstallationInfo {
   id: number;
+  client_id: string;
   account: {
     login: string;
     id: number;

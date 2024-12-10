@@ -61,7 +61,7 @@ export function NavRepository({
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton asChild>
-                        <Link href={`/repo/${subItem.url}`}>
+                        <Link href={`/repo/${item.url}/${subItem.url}`}>
                           <span>{subItem.title}</span>
                         </Link>
                       </SidebarMenuSubButton>

@@ -14,7 +14,7 @@ export const TreeView = ({ elements: fileTree }: TreeItemProps) => {
 
   return (
     <Tree
-      className="w-full h-full bg-background p-2 rounded-md"
+      className="pb-4 px-2"
       indicator={true}
       showIcons={showIcons}
       showFiles={showFiles}
@@ -33,7 +33,7 @@ export const TreeView = ({ elements: fileTree }: TreeItemProps) => {
 
 export const TreeItem = ({ elements }: TreeItemProps) => {
   return (
-    <ul className="w-full space-y-1">
+    <ul className="w-full space-y-1 text-sm">
       {elements.map((element) => (
         <li key={element.id} className="w-full space-y-2">
           {element.children !== undefined ? (
