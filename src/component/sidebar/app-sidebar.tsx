@@ -27,7 +27,7 @@ import { NavMenus } from "@/component/sidebar/nav-menus";
 import { NavUser } from "@/component/sidebar/nav-user";
 import { signIn } from "next-auth/react";
 import { GitHubIcon } from "@/component/icon";
-import { BASE_URL, FEEDBACK_EMAIL, GITHUB_REPO_URL } from "@/lib/constant";
+import { FEEDBACK_EMAIL, GITHUB_REPO_URL } from "@/lib/constant";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: User | null;
@@ -102,7 +102,7 @@ export function AppSidebar({ user, allRepos, ...props }: AppSidebarProps) {
       },
       user && {
         title: "Manage Private Repository",
-        url: `${BASE_URL}/api/manage-private-repo`,
+        url: `/api/manage-private-repo`,
         icon: Settings,
       },
     ].filter((item) => item !== null),
