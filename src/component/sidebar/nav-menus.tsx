@@ -8,11 +8,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/component/ui/sidebar";
+import { User } from "next-auth";
 
 export function NavMenus({
   items,
+  user,
   ...props
 }: {
+  user: User | null;
   items: {
     title: string;
     url: string;

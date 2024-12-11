@@ -2,11 +2,8 @@ import { type Session } from "next-auth";
 
 export interface InstallationInfo {
   id: number;
-  client_id: string;
-  account: {
-    login: string;
-    id: number;
-  };
+  app_slug: string;
+  html_url: string;
   app_id: number;
   target_type: string;
   permissions: {
@@ -15,6 +12,11 @@ export interface InstallationInfo {
     [key: string]: string;
   };
   repository_selection: 'all' | 'selected';
+}
+
+export interface SidebarRepoItem {
+  title: string;
+  url: string;
 }
 
 export interface Repository {

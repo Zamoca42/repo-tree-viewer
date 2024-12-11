@@ -1,44 +1,25 @@
-import { Repository, GitTreeResponse, InstallationInfo } from "@/type";
 import ky from "ky";
-import { TreeBuilder } from "@/lib/tree";
-import { TreeStructureSchema } from "@/lib/schema";
 import { z } from "zod";
 import { Session } from "next-auth";
-import jwt from 'jsonwebtoken';
-
-export class GitHubAppAuth {
-  private readonly githubAppClientId: string;
-  private readonly privateKey: string;
-
-  constructor() {
-    this.githubAppClientId = process.env.AUTH_GITHUB_ID!
-    this.privateKey = process.env.GITHUB_APP_PRIVATE_KEY!.replace(/\\n/g, '\n');
-  }
-
-  createAppToken(): string {
-    return jwt.sign(
-      { iss: this.githubAppClientId },
-      this.privateKey,
-      { algorithm: 'RS256', expiresIn: '10m' }
-    );
-  }
-}
+import { TreeBuilder } from "@/lib/tree";
+import { TreeStructureSchema } from "@/lib/schema";
+import { Repository, GitTreeResponse, InstallationInfo } from "@/type";
+import { redirect } from "next/navigation";
 
 export class GitHubClient {
   private client: typeof ky;
   private username: string;
-  private oauthToken: string;
+  private accessToken: string;
   private readonly githubAppName = "repository-tree-viewer";
-  private readonly githubAppClientId = process.env.GITHUB_APP_CLIENT_ID!;
 
   constructor(session: Session | null) {
     this.username = this.getSessionUsername(session);
-    this.oauthToken = this.validateAccessToken(session?.accessToken);
+    this.accessToken = this.validateAccessToken(session?.accessToken);
 
     this.client = ky.extend({
       prefixUrl: "https://api.github.com",
       headers: {
-        Authorization: `Bearer ${this.oauthToken}`,
+        Authorization: `Bearer ${this.accessToken}`,
       },
     });
   }
@@ -50,47 +31,12 @@ export class GitHubClient {
         .json<{ installations: InstallationInfo[] }>();
 
       return installations.installations.find(
-        install => install.client_id === this.githubAppClientId
+        install => install.app_slug === this.githubAppName
       ) || null;
     } catch (error) {
       console.error('Failed to fetch app installation:', error);
       return null;
     }
-  }
-
-  async getInstallationRepositories(installationId: number): Promise<Repository[]> {
-    try {
-      const response = await this.client
-        .get(`user/installations/${installationId}/repositories`)
-        .json<{ repositories: Repository[] }>();
-      
-      return response.repositories;
-    } catch (error) {
-      console.error('Failed to fetch installation repositories:', error);
-      return [];
-    }
-  }
-
-  async checkAppInstallation(): Promise<{
-    isInstalled: boolean;
-    installationId?: number;
-    repositories?: Repository[];
-  }> {
-    const installation = await this.getAppInstallation();
-    
-    if (!installation) {
-      return {
-        isInstalled: false
-      };
-    }
-
-    const repositories = await this.getInstallationRepositories(installation.id);
-    
-    return {
-      isInstalled: true,
-      installationId: installation.id,
-      repositories
-    };
   }
 
   getAppInstallUrl(): string {
@@ -110,7 +56,7 @@ export class GitHubClient {
     }
   }
 
-  async getAllPublicRepositories(): Promise<Repository[]> {
+  async getAllRepositories(): Promise<Repository[]> {
     const totalCount = await this.getPublicRepoCount();
     const perPage = 100;
     const totalPages = Math.ceil(totalCount / perPage);
@@ -119,6 +65,7 @@ export class GitHubClient {
     for (let page = 1; page <= totalPages; page++) {
       const repos = await this.client.get("user/repos", {
         searchParams: {
+          affiliation: 'owner',
           per_page: perPage.toString(),
           page: page.toString(),
           sort: "updated",

@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/component/ui/sidebar";
-import { Repository, User } from "@/type";
+import { Repository, SidebarRepoItem, User } from "@/type";
 import { NavRepository } from "@/component/sidebar/nav-repository";
 import { NavMenus } from "@/component/sidebar/nav-menus";
 import { NavUser } from "@/component/sidebar/nav-user";
@@ -31,43 +31,62 @@ import { BASE_URL, FEEDBACK_EMAIL, GITHUB_REPO_URL } from "@/lib/constant";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: User | null;
-  publicRepo: Repository[];
+  allRepos: Repository[];
 }
 
-const transformRepos = (repos: Repository[], isFork: boolean) => {
+interface TransformedRepos {
+  forked: SidebarRepoItem[];
+  owned: SidebarRepoItem[];
+  private: SidebarRepoItem[];
+}
+
+const transformRepos = (repos: Repository[]): TransformedRepos => {
   return repos
-    .filter((repo) => repo.fork === isFork)
     .map((repo) => ({
       title: repo.name,
       url: `${repo.name}?b=${repo.default_branch}`,
-    }));
+      fork: repo.fork,
+      private: repo.private,
+    }))
+    .reduce<TransformedRepos>(
+      (acc, repo) => {
+        if (repo.fork) {
+          acc.forked.push(repo);
+        } else if (repo.private) {
+          acc.private.push(repo);
+        } else {
+          acc.owned.push(repo);
+        }
+        return acc;
+      },
+      { forked: [], owned: [], private: [] }
+    );
 };
 
-export function AppSidebar({ user, publicRepo, ...props }: AppSidebarProps) {
-  const ownedRepos = transformRepos(publicRepo, false);
-  const forkedRepos = transformRepos(publicRepo, true);
+export function AppSidebar({ user, allRepos, ...props }: AppSidebarProps) {
+  const transformedRepos = transformRepos(allRepos);
   const data = {
     repo: [
       {
         title: "Owned",
         url: "owned",
         icon: BookOpen,
-        items: ownedRepos,
-        badge: ownedRepos.length,
+        items: transformedRepos.owned,
+        badge: transformedRepos.owned.length,
       },
       {
         title: "Forked",
         url: "forked",
         icon: BookCopy,
-        items: forkedRepos,
-        badge: forkedRepos.length,
+        items: transformedRepos.forked,
+        badge: transformedRepos.forked.length,
       },
       {
         title: "Private",
         url: "private",
         icon: BookLock,
-        items: [],
-        badge: 0,
+        items: transformedRepos.private,
+        badge: transformedRepos.private.length,
       },
     ],
     menu: [
@@ -81,12 +100,12 @@ export function AppSidebar({ user, publicRepo, ...props }: AppSidebarProps) {
         url: GITHUB_REPO_URL,
         icon: GitHubIcon,
       },
-      {
+      user && {
         title: "Manage Private Repository",
         url: `${BASE_URL}/api/manage-private-repo`,
         icon: Settings,
       },
-    ],
+    ].filter((item) => item !== null),
   };
 
   return (
@@ -111,7 +130,7 @@ export function AppSidebar({ user, publicRepo, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavRepository items={data.repo} />
-        <NavMenus items={data.menu} className="mt-auto" />
+        <NavMenus items={data.menu} user={user} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         {user ? (

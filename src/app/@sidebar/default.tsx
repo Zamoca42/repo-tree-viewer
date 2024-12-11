@@ -3,11 +3,11 @@ import { getSidebarData } from "@/lib/sidebar";
 import { redirect } from "next/navigation";
 
 export default async function DefaultSidebar() {
-  const { user, publicRepo } = await getSidebarData();
+  const { user, allRepos } = await getSidebarData();
 
   if (!user) {
     redirect("/");
   }
 
-  return <AppSidebar user={user} publicRepo={publicRepo} />;
+  return <AppSidebar user={user} allRepos={allRepos} />;
 }

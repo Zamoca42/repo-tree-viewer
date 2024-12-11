@@ -50,7 +50,7 @@ export function RepoContentMenu({
   };
 
   return (
-    <div className="flex items-center justify-end gap-2 px-2 pt-4">
+    <div className="flex items-center justify-end gap-2 px-2 pt-2">
       <RepoViewOptions
         showIcons={showIcons}
         showFiles={showFiles}

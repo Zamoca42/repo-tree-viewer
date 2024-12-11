@@ -8,7 +8,7 @@ export async function getSidebarData() {
   if (!session) {
     return {
       user: null,
-      publicRepo: []
+      allRepos: []
     };
   }
 
@@ -19,10 +19,10 @@ export async function getSidebarData() {
   };
 
   const githubClient = new GitHubClient(session);
-  const publicRepo = await githubClient.getAllPublicRepositories();
+  const allRepos = await githubClient.getAllRepositories();
 
   return {
     user,
-    publicRepo
+    allRepos
   };
 }
